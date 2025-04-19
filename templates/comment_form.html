@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajouter un commentaire</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fffaf3;
+            padding: 2rem;
+        }
+        form {
+            background-color: white;
+            padding: 1.5rem;
+            max-width: 600px;
+            margin: 2rem auto;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #ccc;
+        }
+        h2 {
+            color: #cc5200;
+            text-align: center;
+        }
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 1rem 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        .btn {
+            background-color: #cc5200;
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h2>💬 Commenter le tweet</h2>
+    <form method="POST" action="/comment/{{ tweet_id }}">
+        <label>Votre nom :</label>
+        <input type="text" name="author" required>
+        <label>Commentaire :</label>
+        <textarea name="text" rows="3" required></textarea>
+        <button type="submit" class="btn">Envoyer</button>
+    </form>
+</body>
+</html>

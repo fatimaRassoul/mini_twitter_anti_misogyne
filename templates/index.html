@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mini Twitter - Au Nom d’Elles</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #fff7ef;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #cc5200;
+            font-size: 2.4rem;
+            margin-bottom: 1rem;
+        }
+
+        h1::before {
+            content: "🐦 ";
+            font-size: 2rem;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        label {
+            font-weight: bold;
+            color: #444;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        label::before {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        label[for="username"]::before {
+            content: "👤";
+        }
+
+        label[for="texte"]::before {
+            content: "📝";
+        }
+
+        input[type="text"],
+        textarea {
+            padding: 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button,
+        .btn {
+            background-color: #cc5200;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover,
+        .btn:hover {
+            background-color: #a94400;
+        }
+
+        .btn.disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .tweet {
+            background-color: #fff;
+            padding: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin-bottom: 1.2rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .tweet-header {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #cc5200;
+        }
+
+        .tweet-text {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .alert {
+            background-color: #ffdddd;
+            color: #a30000;
+            padding: 0.5rem;
+            border-left: 4px solid #ff0000;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .comments {
+            margin-top: 0.8rem;
+            padding-left: 1rem;
+            font-size: 0.9rem;
+            color: #444;
+            border-left: 3px solid #eee;
+        }
+
+        .comments div {
+            margin-bottom: 6px;
+        }
+
+        .comment-author {
+            font-weight: bold;
+            color: #cc5200;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: #a63e00;
+        }
+
+        @media (max-width: 600px) {
+            form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Mini Twitter - Au Nom d’Elles</h1>
+
+    <form method="POST">
+        <label for="username">Nom d'utilisateur :</label>
+        <input type="text" name="username" id="username" required>
+        <label for="texte">Message :</label>
+        <textarea name="texte" id="texte" required></textarea>
+        <button type="submit">Publier</button>
+    </form>
+
+    <h2>🧾 Tweets Récents</h2>
+    {% for id, pseudo, texte, label, proba_misog, proba_non, likes, comments in tweets %}
+    <div class="tweet">
+        <div class="tweet-header">{{ pseudo }}</div>
+        <div class="tweet-text">{{ texte }}</div>
+        {% if label == 'Misogyne' %}
+            <div class="alert">⚠️ Ce message est jugé comme misogyne. Aucune interaction possible.</div>
+            <div class="controls">
+                <button class="btn disabled">👍 Like ({{ likes }})</button>
+                <button class="btn disabled">💬 Commentaire ({{ comments }})</button>
+            </div>
+        {% else %}
+            <span style="color: green; font-weight: bold;">✔️ Message non misogyne</span>
+            <div class="controls">
+                <a href="/like/{{ id }}" class="btn">👍 Like ({{ likes }})</a>
+                <a href="/comment/{{ id }}" class="btn">💬 Commentaire ({{ comments }})</a>
+            </div>
+            {% if comments_by_tweet.get(id) %}
+                <div class="comments">
+                    <b>💬 Commentaires :</b>
+                    {% for author, comment in comments_by_tweet[id] %}
+                        <div><span class="comment-author">{{ author }}</span> : {{ comment }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+    {% endfor %}
+</body>
+</html>
