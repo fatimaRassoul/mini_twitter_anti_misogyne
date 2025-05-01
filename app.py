@@ -14,14 +14,14 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 def get_connection():
     return psycopg2.connect(DATABASE_URL)
 
-# 🗕 Initialiser la base PostgreSQL
+# 🛠 Initialisation base de données
 def init_db():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute('''
         CREATE TABLE IF NOT EXISTS tweets (
             id SERIAL PRIMARY KEY,
-            user TEXT,
+            username TEXT,
             content TEXT,
             label TEXT,
             proba_misog REAL,
@@ -45,7 +45,7 @@ def init_db():
 
 init_db()
 
-# 📅 Téléchargement du modèle depuis Google Drive
+# 📦 Téléchargement modèle CamemBERT
 MODEL_DIR = "model_camembert_final"
 if not os.path.exists(MODEL_DIR):
     folder_id = "1B2Nriruvr4lpWs7OA7Gyekk80JPwkTcK"
@@ -56,12 +56,12 @@ if not os.path.exists(MODEL_DIR):
         use_cookies=False
     )
 
-# 🔄 Charger modèle
+# 🔄 Chargement du modèle
 model = CamembertForSequenceClassification.from_pretrained(MODEL_DIR)
 tokenizer = CamembertTokenizer.from_pretrained(MODEL_DIR)
 model.eval()
 
-# 🧠 Prédiction
+# 🔍 Prédiction
 def predict_text(text):
     inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=128)
     with torch.no_grad():
@@ -71,21 +71,21 @@ def predict_text(text):
     label = logits.argmax(dim=1).item()
     return label, probs
 
-# 🏠 Page principale
+# 🏠 Accueil
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        user = request.form.get("username", "").strip()
+        username = request.form.get("username", "").strip()
         content = request.form.get("texte", "").strip()
-        if user and content:
+        if username and content:
             label, probs = predict_text(content)
             label_str = "Misogyne" if label == 1 else "Non Misogyne"
             conn = get_connection()
             cur = conn.cursor()
             cur.execute("""
-                INSERT INTO tweets (user, content, label, proba_misog, proba_nonmisog)
+                INSERT INTO tweets (username, content, label, proba_misog, proba_nonmisog)
                 VALUES (%s, %s, %s, %s, %s)
-            """, (user, content, label_str, float(probs[1]), float(probs[0])))
+            """, (username, content, label_str, float(probs[1]), float(probs[0])))
             conn.commit()
             cur.close()
             conn.close()
@@ -93,7 +93,7 @@ def index():
 
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, user, content, label, proba_misog, proba_nonmisog, likes, comments FROM tweets ORDER BY id DESC")
+    cur.execute("SELECT id, username, content, label, proba_misog, proba_nonmisog, likes, comments FROM tweets ORDER BY id DESC")
     tweets = cur.fetchall()
 
     cur.execute("SELECT tweet_id, author, text FROM comments")
@@ -121,7 +121,7 @@ def like(tweet_id):
     conn.close()
     return redirect(url_for("index"))
 
-# 💬 Commentaires
+# 💬 Commentaire
 @app.route("/comment/<int:tweet_id>", methods=["GET", "POST"])
 def comment(tweet_id):
     if request.method == "POST":
